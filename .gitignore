@@ -1,0 +1,10 @@
+# compiled binaries
+*.o
+*.out
+# exclude executables without extension (like ./1)
+/1
+/2
+/3
+
+# IDE
+.vscode/
