@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/intel/oneapi/compiler/latest/include",
+                "/opt/intel/oneapi/compiler/latest/include/sycl"
+            ],
+            "compilerPath": "/opt/intel/oneapi/compiler/latest/bin/icpx",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}
