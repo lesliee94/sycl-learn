@@ -1,11 +1,31 @@
-# compiled binaries
+# Compiled binaries
 *.o
 *.out
-# exclude executables without extension (like ./1)
+*.exe
+*.bin
+
+# Executables (no extension)
 /1
 /2
 /3
+/2_layout_basic
+/3_tensor_basics
+/4_tile_and_partition
+/5_*
 
-# IDE
+# Build directories
+build/
+deps/
+
+# IDE / Editor
 .vscode/
-2_layout_basic
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Debug
+*.dSYM/
