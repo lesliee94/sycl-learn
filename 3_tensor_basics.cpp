@@ -25,10 +25,8 @@
 //   5. local_tile — partitioning a Tensor into tiles
 //   6. Summary and concept mapping
 //
-// Compile (CPU only, no GPU needed):
-//   nvcc -std=c++17 -I /path/to/cutlass/include 3_tensor_basics.cpp -o 3_tensor_basics
-//   or:
-//   g++ -std=c++17 -I /path/to/cutlass/include 3_tensor_basics.cpp -o 3_tensor_basics
+// Compile:
+//   icpx -fsycl -DCUTLASS_ENABLE_SYCL -DSYCL_INTEL_TARGET -I ../sycl-tla/include 3_tensor_basics.cpp -o 3_tensor_basics
 //
 // ============================================================
 

@@ -27,7 +27,7 @@
 //       to what runs on GPU.
 //
 // Compile:
-//   icpx -fsycl -I <sycl-tla>/include 4_tile_and_partition.cpp -o 4_tile_and_partition
+//   icpx -fsycl -DCUTLASS_ENABLE_SYCL -DSYCL_INTEL_TARGET -I ../sycl-tla/include 4_tile_and_partition.cpp -o 4_tile_and_partition
 //
 // ============================================================
 
