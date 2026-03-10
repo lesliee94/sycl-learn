@@ -10,15 +10,16 @@
 // This demo covers:
 //   1. Creating 1D layouts (vectors)
 //   2. Creating 2D layouts (matrices) — column-major & row-major
-//   3. Custom strides
+//   3. Custom strides and padded layouts
 //   4. Hierarchical (nested) shapes
 //   5. Static vs dynamic integers
-//   6. Querying layout properties: size, rank, shape, stride
-//   7. Indexing with 1D and 2D coordinates
-//   8. print_layout visualization
+//   6. Querying layout properties: size, rank, shape, stride, depth, cosize
+//   7. Indexing with 1D, 2D, and hierarchical coordinates
+//   8. Accessing sub-layouts of a hierarchical layout
+//   9. print_layout visualization
 //
 // Compile:
-//   icpx -fsycl -I ../sycl-tla/include 2_layout_basic.cpp -o 2_layout_basic
+//   icpx -fsycl -DCUTLASS_ENABLE_SYCL -DSYCL_INTEL_TARGET -I ../sycl-tla/include 2_layout_basic.cpp -o 2_layout_basic
 //
 // ============================================================
 
@@ -56,6 +57,19 @@ void print1D(const char* name, Layout<Shape, Stride> const& layout) {
         printf("%3d  ", layout(i));
     }
     printf("\n");
+}
+
+// Helper: print basic metadata of a layout
+template <class LayoutT>
+void printLayoutInfo(const char* name, LayoutT const& layout) {
+    printf("\n=== %s ===\n", name);
+    printf("Layout : "); print(layout);        printf("\n");
+    printf("Shape  : "); print(shape(layout)); printf("\n");
+    printf("Stride : "); print(stride(layout));printf("\n");
+    printf("Rank   : %d\n", int(rank(layout)));
+    printf("Depth  : %d\n", int(depth(layout)));
+    printf("Size   : %d\n", int(size(layout)));
+    printf("Cosize : %d\n", int(cosize(layout)));
 }
 
 int main() {
@@ -107,6 +121,13 @@ int main() {
                               make_stride(Int<12>{}, Int<1>{}));
     print2D("custom (2,4):(12,1)", custom);
 
+    // Padded layout: logical size is still 8, but the codomain is 28.
+    // This is useful when rows/columns are padded for alignment.
+    auto padded = make_layout(make_shape(Int<4>{}, Int<2>{}),
+                              make_stride(Int<1>{}, Int<24>{}));
+    print2D("padded (4,2):(1,24)", padded);
+    printLayoutInfo("padded metadata", padded);
+
     // ----------------------------------------------------------
     // 4. Hierarchical (nested) shapes
     // ----------------------------------------------------------
@@ -124,6 +145,11 @@ int main() {
     auto hier_col = make_layout(make_shape(2, make_shape(2, 2)),
                                 LayoutLeft{});
     print2D("hier_col (2,(2,2)) LayoutLeft", hier_col);
+
+    // Same logical hierarchical shape, but generate strides from the right.
+    // For hierarchical shapes, LayoutRight may look less intuitive.
+    auto hier_row = make_layout(shape(hier), LayoutRight{});
+    print2D("hier_row (2,(2,2)) LayoutRight", hier_row);
 
     // ----------------------------------------------------------
     // 5. Static vs dynamic integers
@@ -160,6 +186,10 @@ int main() {
     printf("  size   = %d\n", int(size(hier)));
     printf("  size<0>= %d\n", int(size<0>(hier)));
     printf("  size<1>= %d (second mode, flattened 2*2=4)\n", int(size<1>(hier)));
+    printf("  shape<0>= "); print(shape<0>(hier)); printf("\n");
+    printf("  shape<1>= "); print(shape<1>(hier)); printf("\n");
+    printf("  stride<0>= "); print(stride<0>(hier)); printf("\n");
+    printf("  stride<1>= "); print(stride<1>(hier)); printf("\n");
 
     // ----------------------------------------------------------
     // 7. Indexing: 1D vs 2D coordinates
@@ -174,15 +204,30 @@ int main() {
     printf("\nrow_major(2,1) = %d  (row=2, col=1 => 2*2 + 1*1 = 5)\n",
            int(row_major(2, 1)));
 
+        // Hierarchical coordinates can be addressed in multiple compatible ways.
+        printf("\nhier(7)                     = %d  (flat 1D coordinate)\n", int(hier(7)));
+        printf("hier(1,3)                   = %d  (logical 2D coordinate)\n", int(hier(1, 3)));
+        printf("hier(make_coord(1, make_coord(1,1))) = %d  (hierarchical coordinate)\n",
+            int(hier(make_coord(1, make_coord(1, 1)))));
+
+        // Sub-layouts: get<0> is the first mode, get<1> is the hierarchical second mode.
+        auto hier_mode0 = get<0>(hier);
+        auto hier_mode1 = get<1>(hier);
+        printLayoutInfo("get<0>(hier)", hier_mode0);
+        printLayoutInfo("get<1>(hier)", hier_mode1);
+        print1D("get<1>(hier) flattened", hier_mode1);
+
     // ----------------------------------------------------------
-    // 8. print_layout: CuTe's built-in formatted 2D visualization
+        // 8. print_layout: CuTe's built-in formatted 2D visualization
     // ----------------------------------------------------------
     printf("\n=== print_layout (CuTe built-in) ===\n");
     print_layout(col_major);
     printf("\n");
     print_layout(row_major);
     printf("\n");
-    print_layout(hier);
+        print_layout(hier);
+        printf("\n");
+        print_layout(hier_row);
 
     return 0;
 }
